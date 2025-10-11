@@ -62,7 +62,10 @@ CREATE INDEX idx_items_user_id ON public.items(user_id);
 CREATE INDEX idx_items_qr_code ON public.items(qr_code);
 CREATE INDEX idx_actions_user_id ON public.actions(user_id);
 CREATE INDEX idx_actions_scheduled_at ON public.actions(scheduled_at);
-CREATE INDEX idx_webhook_events_event_id ON billing.webhook_events(event_id);
+
+-- Unique index for webhook idempotency (explicit, though UNIQUE constraint above also creates one)
+CREATE UNIQUE INDEX IF NOT EXISTS ux_billing_webhook_events_event_id
+ON billing.webhook_events(event_id);
 
 -- Enable RLS on all customer-facing tables
 ALTER TABLE public.customer_profile ENABLE ROW LEVEL SECURITY;
