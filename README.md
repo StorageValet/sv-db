@@ -64,3 +64,15 @@ psql $DATABASE_URL < seeds/config_pricing.sql
 - `config_referrals`: enabled, reward_amount_cents
 
 Managed via Retool post-launch.
+
+---
+
+### Project docs
+Core specs & runbooks: **https://github.com/mystoragevalet/sv-docs**
+
+- Implementation Plan v3.1
+- Final Validation Checklist v3.1
+- Deployment Instructions v3.1
+- Go–NoGo (Line in the Sand) v3.1
+- Business Context & Requirements v3.1
+- Runbooks (webhook tests, env setup, smoke tests)
