@@ -151,3 +151,13 @@ DROP POLICY IF EXISTS p_claims_owner_insert ON public.claims;
 CREATE POLICY p_claims_owner_insert ON public.claims
   FOR INSERT TO authenticated
   WITH CHECK ( user_id = auth.uid() );
+
+-- Performance indexes for fast queries at scale
+CREATE INDEX IF NOT EXISTS idx_items_user_created_at
+  ON public.items (user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_items_tags_gin
+  ON public.items USING gin (tags);
+
+CREATE INDEX IF NOT EXISTS idx_items_details_gin
+  ON public.items USING gin (details);
