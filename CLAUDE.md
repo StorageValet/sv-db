@@ -1,8 +1,8 @@
 # Storage Valet Portal - Claude Code Context
 
-**Last Updated:** Oct 28, 2025
-**Phase:** 1.0 (Feature Complete, Testing Pending)
-**Production Status:** 75% Ready (Infrastructure ✅, Code ✅, Testing ⏳)
+**Last Updated:** Oct 30, 2025
+**Phase:** 1.0 (Security Hardening Complete)
+**Production Status:** 90% Ready (Infrastructure ✅, Code ✅, Security ✅, Testing ⏳)
 
 ---
 
@@ -71,9 +71,18 @@ See: `~/code/sv-docs/PHASE_1_STRATEGIC_SHIFT.md` for rationale
 ## Security Patterns (CRITICAL)
 
 ### Defense-in-Depth Security Architecture
-**As of Migration 0006 (Oct 30, 2024):**
+**As of Migration 0006 (Oct 30, 2025):**
 
 Storage Valet implements **database-enforced security** using PostgreSQL Row Level Security (RLS). Client-side `user_id` filters are **redundant backup** - the database itself prevents cross-tenant access.
+
+**Security Remediation Completed (Oct 30, 2025):**
+- ✅ Fixed IDOR vulnerabilities in all client queries
+- ✅ Fixed billing schema namespace issues in edge functions
+- ✅ Fixed photo deletion race conditions
+- ✅ Fixed QR code UTF-8 encoding
+- ✅ Implemented comprehensive RLS policies on all tables
+- ✅ Protected billing fields with SECURITY DEFINER function
+- ✅ Added webhook idempotency constraints
 
 #### **Layer 1: Database RLS (Primary Security)**
 - **Enabled on all tables:** `customer_profile`, `items`, `actions`, `claims`, `inventory_events`
@@ -155,7 +164,7 @@ Stripe-managed columns (`subscription_status`, `stripe_customer_id`, etc.) are *
 **`public.customer_profile`** - User account data (RLS enabled)
 - `user_id` (PK, references auth.users, NOT NULL)
 - `email` (NOT NULL), `stripe_customer_id`, `subscription_id`
-- `subscription_status` (ENUM: inactive | active | past_due | canceled, NOT NULL)
+- `subscription_status` (ENUM: inactive | active | past_due | canceled | trialing | incomplete | incomplete_expired | unpaid | paused, NOT NULL)
 - `last_payment_at`, `last_payment_failed_at` (timestamps from webhooks, Migration 0005)
 - `full_name`, `phone`, `delivery_address` (jsonb), `delivery_instructions`
 - **Security:** Stripe columns protected (REVOKE UPDATE, use `update_subscription_status()` RPC)

@@ -9,11 +9,21 @@
 
 CREATE TYPE public.item_status AS ENUM ('home', 'in_transit', 'stored');
 CREATE TYPE public.action_status AS ENUM ('pending', 'confirmed', 'completed', 'canceled');
-CREATE TYPE public.subscription_status_enum AS ENUM ('inactive', 'active', 'past_due', 'canceled');
+CREATE TYPE public.subscription_status_enum AS ENUM (
+  'inactive',           -- Default state (no subscription)
+  'active',             -- Subscription active and paid
+  'past_due',           -- Payment failed, subscription still active
+  'canceled',           -- Subscription canceled
+  'trialing',           -- In trial period (Stripe)
+  'incomplete',         -- Initial payment pending (Stripe)
+  'incomplete_expired', -- Initial payment failed (Stripe)
+  'unpaid',             -- Payment failed, subscription suspended (Stripe)
+  'paused'              -- Subscription paused (Stripe - if enabled)
+);
 
 COMMENT ON TYPE public.item_status IS 'Valid states for items in customer inventory';
 COMMENT ON TYPE public.action_status IS 'Valid states for pickup/delivery requests';
-COMMENT ON TYPE public.subscription_status_enum IS 'Valid subscription states synced from Stripe';
+COMMENT ON TYPE public.subscription_status_enum IS 'Valid subscription states from Stripe API (includes all possible lifecycle states)';
 
 -- ============================================================================
 -- PART 2: MIGRATE EXISTING DATA TO ENUMS
@@ -39,7 +49,10 @@ ALTER TABLE public.actions
 ALTER TABLE public.customer_profile
   ALTER COLUMN subscription_status TYPE public.subscription_status_enum
   USING CASE
-    WHEN subscription_status IN ('inactive', 'active', 'past_due', 'canceled') THEN subscription_status::public.subscription_status_enum
+    WHEN subscription_status IN (
+      'inactive', 'active', 'past_due', 'canceled',
+      'trialing', 'incomplete', 'incomplete_expired', 'unpaid', 'paused'
+    ) THEN subscription_status::public.subscription_status_enum
     ELSE 'inactive'::public.subscription_status_enum  -- Default for invalid values
   END;
 
@@ -97,28 +110,33 @@ ALTER TABLE public.claims
 -- PART 6: CREATE PERFORMANCE INDEXES
 -- ============================================================================
 -- Critical for RLS policy performance and general query efficiency
+-- NOTE: Only creating NEW indexes not already defined in migrations 0001/0003/0004
 
--- Items indexes
-CREATE INDEX IF NOT EXISTS items_user_id_idx ON public.items(user_id);
-CREATE INDEX IF NOT EXISTS items_status_idx ON public.items(status);
-CREATE INDEX IF NOT EXISTS items_qr_code_idx ON public.items(qr_code);
-CREATE INDEX IF NOT EXISTS items_category_idx ON public.items(category);
+-- Items indexes (DEDUPLICATED)
+-- Already exists: idx_items_user_id (migration 0001)
+-- Already exists: idx_items_qr_code (migration 0001)
+-- Already exists: idx_items_category (migration 0004)
+-- Already exists: idx_items_status (migration 0004)
+-- NEW: items_created_at_idx (simple created_at index for RLS optimization)
 CREATE INDEX IF NOT EXISTS items_created_at_idx ON public.items(created_at DESC);
 
--- Actions indexes
-CREATE INDEX IF NOT EXISTS actions_user_id_idx ON public.actions(user_id);
+-- Actions indexes (DEDUPLICATED)
+-- Already exists: idx_actions_user_id (migration 0001)
+-- Already exists: idx_actions_scheduled_at (migration 0001)
+-- NEW: actions_status_idx (needed for RLS policy filtering)
 CREATE INDEX IF NOT EXISTS actions_status_idx ON public.actions(status);
-CREATE INDEX IF NOT EXISTS actions_scheduled_at_idx ON public.actions(scheduled_at);
+-- NEW: actions_service_type_idx (improves service_type filtering)
 CREATE INDEX IF NOT EXISTS actions_service_type_idx ON public.actions(service_type);
 
--- Claims indexes
+-- Claims indexes (ALL NEW - claims table created in migration 0003)
 CREATE INDEX IF NOT EXISTS claims_user_id_idx ON public.claims(user_id);
 CREATE INDEX IF NOT EXISTS claims_item_id_idx ON public.claims(item_id);
 CREATE INDEX IF NOT EXISTS claims_status_idx ON public.claims(status);
 
--- Inventory events indexes
-CREATE INDEX IF NOT EXISTS inventory_events_user_id_idx ON public.inventory_events(user_id);
-CREATE INDEX IF NOT EXISTS inventory_events_item_id_created_idx ON public.inventory_events(item_id, created_at DESC);
+-- Inventory events indexes (DEDUPLICATED)
+-- Already exists: idx_inventory_events_item_id_created (migration 0004)
+-- Already exists: idx_inventory_events_user_id_created (migration 0004)
+-- NEW: inventory_events_event_type_idx (improves event_type filtering)
 CREATE INDEX IF NOT EXISTS inventory_events_event_type_idx ON public.inventory_events(event_type);
 
 -- ============================================================================
