@@ -1,3 +1,14 @@
 .env
 .env.local
 *.log
+
+# Supabase
+.DS_Store
+node_modules/
+
+# Backup and temporary files
+backup_*.sql
+COMBINED_MIGRATIONS*.sql
+
+# IMPORTANT: Migrations live ONLY in supabase/migrations/
+# Do NOT create a root-level migrations/ folder - it causes AI confusion

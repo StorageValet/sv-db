@@ -1,8 +1,30 @@
-# Storage Valet Portal - Claude Code Context
+# Storage Valet Database - Claude Code Context
 
-**Last Updated:** Oct 30, 2025
+**Last Updated:** Nov 25, 2025
 **Phase:** 1.0 (Security Hardening Complete)
-**Production Status:** 90% Ready (Infrastructure ✅, Code ✅, Security ✅, Testing ⏳)
+**Production Status:** 95% Ready (Migrations ✅, Security ✅, Testing ⏳)
+
+---
+
+## 🔴 CRITICAL: MIGRATION FILE LOCATION
+
+**Migrations live ONLY in:** `supabase/migrations/`
+
+```
+~/code/sv-db/
+├── supabase/
+│   └── migrations/     ← ✅ ONLY migration location
+│       ├── 0001_init.sql
+│       ├── ...
+│       └── 20251125000015_security_fixes_session.sql
+└── CLAUDE.md
+```
+
+**DO NOT:**
+- Create a root-level `migrations/` folder (causes AI confusion)
+- Put SQL files anywhere except `supabase/migrations/`
+
+**Current migrations (0001-0015):** All applied to production Nov 25, 2025.
 
 ---
 
