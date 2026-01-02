@@ -4,7 +4,7 @@
 -- Purpose: Ensure 20251112000006 can ALTER TYPE without default-cast failures during local reset
 -- ============================================================================
 
-DO $
+DO $$
 BEGIN
   -- Only relevant if these columns are still text/varchar (i.e., before 0006 runs)
   -- Drop defaults so subsequent ALTER TYPE in 0006 doesn't fail.
@@ -35,4 +35,4 @@ BEGIN
   ) THEN
     EXECUTE 'ALTER TABLE public.customer_profile ALTER COLUMN subscription_status DROP DEFAULT';
   END IF;
-END $;
+END $$;
