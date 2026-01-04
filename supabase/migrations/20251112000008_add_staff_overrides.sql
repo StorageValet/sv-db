@@ -44,8 +44,10 @@ CREATE POLICY "Users can delete own pending actions"
   USING (auth.uid() = user_id OR sv.is_staff());
 
 -- 4. Seed sv.staff with initial administrator (id from Supabase auth.users)
+-- Use INSERT...SELECT to skip gracefully if user doesn't exist (local dev vs production)
 INSERT INTO sv.staff (user_id, role, full_name, email)
-VALUES ('24b9bcd8-2a98-44e8-b0af-920ae2894c05', 'admin', 'Zach Brown', 'zach@mystoragevalet.com')
+SELECT '24b9bcd8-2a98-44e8-b0af-920ae2894c05', 'admin', 'Zach Brown', 'zach@mystoragevalet.com'
+WHERE EXISTS (SELECT 1 FROM auth.users WHERE id = '24b9bcd8-2a98-44e8-b0af-920ae2894c05')
 ON CONFLICT (user_id) DO NOTHING;
 
 commit;

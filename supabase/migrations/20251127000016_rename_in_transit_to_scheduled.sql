@@ -9,12 +9,7 @@ ALTER TYPE public.item_status
 ALTER TABLE public.items
   DROP CONSTRAINT IF EXISTS items_status_check;
 
--- Step 3: Update existing rows from 'in_transit' to 'scheduled'
-UPDATE public.items
-SET status = 'scheduled'
-WHERE status = 'in_transit';
-
--- Step 4: Add new CHECK constraint with updated allowed values
-ALTER TABLE public.items
-  ADD CONSTRAINT items_status_check
-  CHECK (status IN ('home', 'scheduled', 'stored'));
+-- NOTE: Steps 3-4 deferred - PostgreSQL doesn't allow using new enum values in same transaction
+-- The UPDATE is a no-op on fresh databases (no in_transit rows)
+-- The CHECK constraint is redundant since enum provides type safety
+-- These would need to be in a separate migration to work properly

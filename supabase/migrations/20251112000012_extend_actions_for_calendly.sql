@@ -97,12 +97,12 @@ COMMENT ON INDEX ux_actions_calendly_event_uri IS
 -- ============================================================================
 
 -- Index for querying pending bookings by user and status
+-- NOTE: Removed WHERE clause - can't use new enum values in same transaction as ALTER TYPE ADD VALUE
 CREATE INDEX IF NOT EXISTS idx_actions_user_status
-  ON public.actions (user_id, status)
-  WHERE status IN ('pending_items', 'pending_confirmation', 'confirmed');
+  ON public.actions (user_id, status);
 
 COMMENT ON INDEX idx_actions_user_status IS
-  'Performance: Fast lookup of pending/active bookings for dashboard display';
+  'Performance: Fast lookup of bookings by user and status for dashboard display';
 
 -- GIN index for efficient array overlap queries on pickup_item_ids
 CREATE INDEX IF NOT EXISTS idx_actions_pickup_items_gin

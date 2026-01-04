@@ -8,7 +8,12 @@ ALTER VIEW public.v_user_insurance SET (security_invoker = true);
 -- Revoke ALL privileges from client-facing roles
 REVOKE ALL ON public.v_user_insurance FROM anon;
 REVOKE ALL ON public.v_user_insurance FROM authenticated;
-REVOKE ALL ON public.v_user_insurance FROM agent_role;
+-- agent_role may not exist in local dev - skip if not present
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'agent_role') THEN
+    EXECUTE 'REVOKE ALL ON public.v_user_insurance FROM agent_role';
+  END IF;
+END $$;
 
 -- Grant SELECT only to service_role (for server-side operations if needed)
 GRANT SELECT ON public.v_user_insurance TO service_role;

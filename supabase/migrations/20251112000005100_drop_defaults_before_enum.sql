@@ -7,7 +7,8 @@
 DO $$
 BEGIN
   -- Only relevant if these columns are still text/varchar (i.e., before 0006 runs)
-  -- Drop defaults so subsequent ALTER TYPE in 0006 doesn't fail.
+  -- Drop defaults AND CHECK constraints so subsequent ALTER TYPE in 0006 doesn't fail.
+  -- CHECK constraints compare enum values with text literals, causing "operator does not exist" errors.
 
   IF EXISTS (
     SELECT 1
@@ -16,6 +17,8 @@ BEGIN
       AND data_type IN ('text', 'character varying')
   ) THEN
     EXECUTE 'ALTER TABLE public.items ALTER COLUMN status DROP DEFAULT';
+    -- Drop CHECK constraint that compares status with text literals
+    EXECUTE 'ALTER TABLE public.items DROP CONSTRAINT IF EXISTS items_status_check';
   END IF;
 
   IF EXISTS (
