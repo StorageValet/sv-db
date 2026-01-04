@@ -13,3 +13,4 @@ COMBINED_MIGRATIONS*.sql
 # IMPORTANT: Migrations live ONLY in supabase/migrations/
 # Do NOT create a root-level migrations/ folder - it causes AI confusion
 supabase/.temp/
+supabase/.branches/
