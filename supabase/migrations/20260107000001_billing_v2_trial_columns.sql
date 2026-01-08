@@ -38,7 +38,7 @@ COMMENT ON COLUMN public.customer_profile.billing_version IS 'Billing model vers
 
 CREATE OR REPLACE FUNCTION public.update_subscription_status(
   p_user_id UUID,
-  p_status subscription_status,
+  p_status public.subscription_status_enum,
   p_subscription_id TEXT DEFAULT NULL,
   -- New v2 parameters (all optional for backward compatibility)
   p_trial_end_at TIMESTAMPTZ DEFAULT NULL,
@@ -75,5 +75,5 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION public.update_subscription_status IS
+COMMENT ON FUNCTION public.update_subscription_status(UUID, public.subscription_status_enum, TEXT, TIMESTAMPTZ, BOOLEAN, TIMESTAMPTZ, TEXT, TIMESTAMPTZ, TIMESTAMPTZ) IS
   'SECURITY DEFINER function for webhook to update subscription state. Extended for Billing v2 trial support (January 2026).';
